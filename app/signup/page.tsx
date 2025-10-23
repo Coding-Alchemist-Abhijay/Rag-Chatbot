@@ -46,7 +46,7 @@ export default function Signup() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       router.push('/chat');
-    } catch (err: any) {
+    } catch (err : any) {
       setError(err.message);
     } finally {
       setLoading(false);
