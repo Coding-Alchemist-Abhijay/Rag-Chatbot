@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import SignOut from '@/components/signOut';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -17,13 +18,6 @@ export default function Chat() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    }
-  }, [router]);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -37,12 +31,10 @@ export default function Chat() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ message: userMessage }),
       });
@@ -57,7 +49,6 @@ export default function Chat() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem('token');
           router.push('/login');
           return;
         }
@@ -75,11 +66,6 @@ export default function Chat() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/');
-  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -92,12 +78,7 @@ export default function Chat() {
                 {rateLimitInfo.remaining} requests remaining
               </span>
             </div>
-            <button
-              onClick={handleLogout}
-              className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Logout
-            </button>
+            <SignOut />
           </div>
         </div>
       </nav>
@@ -182,7 +163,7 @@ export default function Chat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about cricket..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
               disabled={loading}
             />
             <button

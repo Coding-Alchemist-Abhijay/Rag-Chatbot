@@ -1,22 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import SignIn from '@/components/signIn';
+import SignOut from '@/components/signOut';
+import { SignedIn, SignedOut } from '@clerk/nextjs'; 
+import { useUser} from "@clerk/nextjs";
 
-export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+ export default function Home() {
   const router = useRouter();
+  const { isSignedIn, user } = useUser();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, []);
-
-  const handleGetStarted = () => {
-    if (isLoggedIn) {
+  const handleGetStarted = () => { 
+    if (isSignedIn) {
       router.push('/chat');
     } else {
-      router.push('/login');
+      router.push('/sign-in');
     }
   };
 
@@ -29,7 +27,7 @@ export default function Home() {
               <h1 className="text-2xl font-bold text-indigo-600">CricketBot</h1>
             </div>
             <div className="flex items-center space-x-4">
-              {isLoggedIn ? (
+              {isSignedIn ? (
                 <button
                   onClick={() => router.push('/chat')}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
@@ -38,18 +36,12 @@ export default function Home() {
                 </button>
               ) : (
                 <>
-                  <button
-                    onClick={() => router.push('/login')}
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => router.push('/signup')}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
-                  >
-                    Sign Up
-                  </button>
+                <SignedOut>
+                <SignIn />
+                </SignedOut>
+                <SignedIn>
+                <SignOut />
+                </SignedIn>
                 </>
               )}
             </div>
@@ -92,7 +84,7 @@ export default function Home() {
               <div className="text-indigo-600 text-3xl mb-4">🤖</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">AI-Powered Responses</h3>
               <p className="text-gray-600">
-                Get accurate answers powered by Google's Gemini AI and our cricket knowledge base.
+                Get accurate answers powered by Google`s Gemini AI and our cricket knowledge base.
               </p>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6">

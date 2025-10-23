@@ -10,6 +10,7 @@
     "ingest": "tsx scripts/ingest-data.ts"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.34.0",
     "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.3",
