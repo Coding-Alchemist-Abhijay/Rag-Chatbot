@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { queryDocuments } from "@/lib/vectordb";
-import { chatWithGemini } from "@/lib/geminiClient";
+import { queryDocuments } from "../../../lib/vectordb";
+import { chatWithGemini } from "../../../lib/geminiClient";
 
 export async function POST(req: NextRequest) {
   try {
