@@ -28,20 +28,22 @@ import { useUser} from "@clerk/nextjs";
             </div>
             <div className="flex items-center space-x-4">
               {isSignedIn ? (
+                <>
                 <button
                   onClick={() => router.push('/chat')}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
                 >
                   Go to Chat
                 </button>
+                <SignedIn>
+                <SignOut />
+                </SignedIn>
+                </>
               ) : (
                 <>
                 <SignedOut>
                 <SignIn />
                 </SignedOut>
-                <SignedIn>
-                <SignOut />
-                </SignedIn>
                 </>
               )}
             </div>

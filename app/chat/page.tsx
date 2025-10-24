@@ -1,89 +1,78 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import SignOut from '@/components/signOut';
+import { useState, useRef, useEffect } from "react";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
+  contextFound?: boolean;
+  contextCount?: number;
 }
 
-export default function Chat() {
+export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rateLimitInfo, setRateLimitInfo] = useState({ remaining: 4, resetTime: '' });
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(scrollToBottom, [messages]);
+
+  const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
     const userMessage = input.trim();
-    setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setInput("");
     setLoading(true);
 
+    // Add user message
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage }),
       });
 
-      const remaining = response.headers.get('X-RateLimit-Remaining');
-      const resetTime = response.headers.get('X-RateLimit-Reset');
-      if (remaining && resetTime) {
-        setRateLimitInfo({ remaining: parseInt(remaining), resetTime });
+      const data = await res.json();
+
+      if (res.ok) {
+        // Add bot response
+        setMessages((prev) => [...prev, { 
+          role: "assistant", 
+          content: data.response,
+          contextFound: data.contextFound,
+          contextCount: data.contextCount
+        }]);
+      } else {
+        // Handle error
+        setMessages((prev) => [...prev, { 
+          role: "assistant", 
+          content: data.response || data.error || "Sorry, something went wrong."
+        }]);
       }
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push('/login');
-          return;
-        }
-        throw new Error(data.error || 'Failed to get response');
-      }
-
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: `Error: ${errorMessage}` 
+    } catch (err) {
+      console.error("Chat error:", err);
+      setMessages((prev) => [...prev, { 
+        role: "assistant", 
+        content: " Error connecting to chat. Please try again."
       }]);
     } finally {
       setLoading(false);
     }
   };
 
-
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-indigo-600">CricketSensei</h1>
-              <span className="ml-4 text-sm text-gray-500">
-                {rateLimitInfo.remaining} requests remaining
-              </span>
-            </div>
-            <SignOut />
-          </div>
-        </div>
-      </nav>
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b p-4">
+        <h1 className="text-2xl font-bold text-indigo-600">🏏 CricketSensei</h1>
+        <p className="text-gray-600 text-sm">Your AI cricket expert with RAG-powered knowledge</p>
+      </div>
 
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="max-w-4xl mx-auto">
           {messages.length === 0 && (
@@ -91,30 +80,30 @@ export default function Chat() {
               <h2 className="text-2xl font-semibold text-gray-700 mb-4">
                 Welcome to CricketSensei! 🏏
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-6">
                 Ask me anything about cricket - rules, history, players, formats, and more!
               </p>
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
                 <button
-                  onClick={() => setInput('What is Test cricket?')}
+                  onClick={() => setInput("What is Test cricket?")}
                   className="p-4 bg-white rounded-lg shadow hover:shadow-md transition text-left"
                 >
                   <p className="text-sm text-indigo-600 font-medium">What is Test cricket?</p>
                 </button>
                 <button
-                  onClick={() => setInput('Tell me about the IPL')}
+                  onClick={() => setInput("Tell me about the IPL")}
                   className="p-4 bg-white rounded-lg shadow hover:shadow-md transition text-left"
                 >
                   <p className="text-sm text-indigo-600 font-medium">Tell me about the IPL</p>
                 </button>
                 <button
-                  onClick={() => setInput('How do you score runs in cricket?')}
+                  onClick={() => setInput("How do you score runs in cricket?")}
                   className="p-4 bg-white rounded-lg shadow hover:shadow-md transition text-left"
                 >
                   <p className="text-sm text-indigo-600 font-medium">How do you score runs in cricket?</p>
                 </button>
                 <button
-                  onClick={() => setInput('Who are some famous cricket players?')}
+                  onClick={() => setInput("Who are some famous cricket players?")}
                   className="p-4 bg-white rounded-lg shadow hover:shadow-md transition text-left"
                 >
                   <p className="text-sm text-indigo-600 font-medium">Who are some famous cricket players?</p>
@@ -126,16 +115,21 @@ export default function Chat() {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
                 className={`max-w-3xl px-4 py-3 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-800 shadow'
+                  message.role === "user"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-white text-gray-800 shadow"
                 }`}
               >
                 <p className="whitespace-pre-wrap">{message.content}</p>
+                {message.role === "assistant" && message.contextFound && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    📚 Used {message.contextCount} relevant cricket knowledge sources
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -156,15 +150,16 @@ export default function Chat() {
         </div>
       </div>
 
+      {/* Input */}
       <div className="border-t bg-white p-4">
-        <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto">
+        <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="max-w-4xl mx-auto">
           <div className="flex gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about cricket..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-black"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               disabled={loading}
             />
             <button

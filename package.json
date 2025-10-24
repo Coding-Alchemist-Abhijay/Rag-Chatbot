@@ -7,11 +7,15 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "ingest": "tsx scripts/ingest-data.ts"
+    "ingest": "tsx scripts/ingest-data.ts",
+    "ingest-cricket": "tsx scripts/ingest-cricket-data.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.34.0",
     "@google/generative-ai": "^0.24.1",
+    "@langchain/core": "^1.0.1",
+    "@langchain/google-genai": "^1.0.0",
+    "@pinecone-database/pinecone": "^6.1.2",
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.3",
     "jsonwebtoken": "^9.0.2",
